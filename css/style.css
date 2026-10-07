@@ -503,3 +503,321 @@ input[type="text"]:focus {
     font-size: 0.9rem;
   }
 }
+
+/* ============================================================
+   TIMER — CARD HEADER ROW
+   ============================================================ */
+.timer-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.timer-card-header h2 {
+  margin-bottom: 0;
+}
+
+.timer-settings-btn {
+  font-size: 0.875rem;
+  padding: 0.3rem 0.75rem;
+  min-height: 36px;
+}
+
+/* ============================================================
+   TIMER — SETTINGS PANEL
+   ============================================================ */
+.timer-settings-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.875rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.preset-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.preset-btn {
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.35rem 0.8rem;
+  min-height: 36px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.preset-btn:hover {
+  background: var(--bg-secondary);
+  border-color: var(--accent);
+}
+
+.preset-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+
+.custom-duration-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.custom-duration-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.custom-duration-input {
+  flex: 1;
+  min-width: 70px;
+  max-width: 100px;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  min-height: 36px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.custom-duration-input:focus {
+  border-color: var(--accent);
+}
+
+/* ============================================================
+   TIMER — SVG RING
+   ============================================================ */
+.timer-ring-wrap {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin: 0.5rem auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timer-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 140px;
+  height: 140px;
+  transform: rotate(-90deg);
+}
+
+.ring-track {
+  fill: none;
+  stroke: var(--bg-secondary);
+  stroke-width: 7;
+}
+
+.ring-progress {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 339.3;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.5s linear, stroke 0.3s;
+}
+
+#timer-display {
+  position: relative;
+  z-index: 1;
+  font-size: 2.2rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--accent);
+  letter-spacing: 2px;
+  margin: 0;
+}
+
+/* ============================================================
+   TIMER — STATE CLASSES (applied to #timer-card)
+   ============================================================ */
+#timer-card.timer-running #timer-display {
+  color: var(--accent);
+  animation: pulse-glow 1.8s ease-in-out infinite;
+}
+
+#timer-card.timer-running .ring-progress {
+  stroke: var(--accent);
+}
+
+#timer-card.timer-paused #timer-display {
+  color: #d97706;
+  animation: none;
+}
+
+#timer-card.timer-paused .ring-progress {
+  stroke: #d97706;
+}
+
+#timer-card.timer-finished #timer-display {
+  color: var(--error);
+  animation: none;
+}
+
+#timer-card.timer-finished .ring-progress {
+  stroke: var(--error);
+}
+
+#timer-card.timer-idle #timer-display {
+  color: var(--accent);
+  animation: none;
+}
+
+@keyframes pulse-glow {
+  0%   { opacity: 1; }
+  50%  { opacity: 0.65; }
+  100% { opacity: 1; }
+}
+
+/* ============================================================
+   TIMER — DISABLED BUTTON STATES
+   ============================================================ */
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ============================================================
+   TASK — PROGRESS SUMMARY
+   ============================================================ */
+.task-progress {
+  margin-bottom: 0.75rem;
+}
+
+#task-progress-text {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.4rem;
+}
+
+.progress-bar-wrap {
+  height: 6px;
+  background: var(--bg-secondary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: #22c55e;
+  border-radius: 3px;
+  transition: width 0.35s ease;
+}
+
+/* ============================================================
+   TASK — SORT ROW
+   ============================================================ */
+.sort-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.sort-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.sort-select {
+  flex: 1;
+  max-width: 200px;
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  min-height: 36px;
+  cursor: pointer;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.sort-select:focus {
+  border-color: var(--accent);
+}
+
+/* ============================================================
+   TASK — STATUS LABEL & ENHANCED DONE STATE
+   ============================================================ */
+.task-text-wrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.task-status {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.task-status.pending {
+  color: var(--text-secondary);
+}
+
+.task-status.completed {
+  color: #22c55e;
+}
+
+.task-item.done {
+  border-left: 3px solid #22c55e;
+  padding-left: calc(0.5rem - 3px);
+  opacity: 0.72;
+}
+
+.task-item.done .task-text {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+/* ============================================================
+   RESPONSIVE — additional tweaks for new elements
+   ============================================================ */
+@media (max-width: 480px) {
+  .timer-ring-wrap {
+    width: 120px;
+    height: 120px;
+  }
+  .timer-ring {
+    width: 120px;
+    height: 120px;
+  }
+  #timer-display {
+    font-size: 1.8rem;
+  }
+  .preset-row {
+    gap: 0.35rem;
+  }
+  .preset-btn {
+    padding: 0.3rem 0.55rem;
+    font-size: 0.8rem;
+  }
+}

@@ -3,10 +3,12 @@
    ============================================================ */
 
 const KEYS = {
-  username: 'dashboard_username',
-  theme:    'dashboard_theme',
-  tasks:    'dashboard_tasks',
-  links:    'dashboard_links'
+  username:      'dashboard_username',
+  theme:         'dashboard_theme',
+  tasks:         'dashboard_tasks',
+  links:         'dashboard_links',
+  timerDuration: 'dashboard_timer_duration',
+  sortOrder:     'dashboard_sort'
 };
 
 let state = {
@@ -16,7 +18,9 @@ let state = {
   links:         [],  // [{id, name, url}]
   timerSeconds:  25 * 60,
   timerRunning:  false,
-  timerInterval: null
+  timerInterval: null,
+  timerDuration: 25,
+  sortOrder:     'default'
 };
 
 /* ============================================================
@@ -40,6 +44,17 @@ function loadState() {
   } catch (e) {
     state.links = [];
   }
+
+  // Timer duration
+  const rawDuration = parseInt(localStorage.getItem(KEYS.timerDuration), 10);
+  state.timerDuration = (!isNaN(rawDuration) && rawDuration >= 1 && rawDuration <= 120)
+    ? rawDuration : 25;
+  state.timerSeconds = state.timerDuration * 60;
+
+  // Sort order
+  const validSorts = ['default', 'newest', 'oldest', 'completed', 'incomplete', 'az', 'za'];
+  const rawSort = localStorage.getItem(KEYS.sortOrder);
+  state.sortOrder = validSorts.includes(rawSort) ? rawSort : 'default';
 }
 
 function saveUsername(name) {
@@ -56,6 +71,14 @@ function saveLinks() {
 
 function saveTheme(theme) {
   localStorage.setItem(KEYS.theme, theme);
+}
+
+function saveTimerDuration(minutes) {
+  localStorage.setItem(KEYS.timerDuration, String(minutes));
+}
+
+function saveSortOrder(order) {
+  localStorage.setItem(KEYS.sortOrder, order);
 }
 
 /* ============================================================
@@ -122,22 +145,97 @@ function renderTimer() {
   if (display) display.textContent = formatTime(state.timerSeconds);
 }
 
+/* ============================================================
+   SECTION 4a: TIMER HELPERS
+   ============================================================ */
+
+const RING_CIRCUMFERENCE = 2 * Math.PI * 54; // ≈ 339.29
+
+function applyTimerState(stateName) {
+  // stateName: 'idle' | 'running' | 'paused' | 'finished'
+  const card = document.getElementById('timer-card');
+  if (!card) return;
+  card.classList.remove('timer-idle', 'timer-running', 'timer-paused', 'timer-finished');
+  card.classList.add('timer-' + stateName);
+}
+
+function updateProgressRing() {
+  const ring = document.getElementById('ring-progress');
+  if (!ring) return;
+  const total   = state.timerDuration * 60;
+  const elapsed = total - state.timerSeconds;
+  const progress = total > 0 ? elapsed / total : 0;
+  const offset = RING_CIRCUMFERENCE * (1 - progress);
+  ring.style.strokeDashoffset = offset;
+}
+
+function updateTimerButtons() {
+  const startBtn = document.getElementById('start-btn');
+  const stopBtn  = document.getElementById('stop-btn');
+  if (startBtn) {
+    startBtn.disabled = state.timerRunning || state.timerSeconds <= 0;
+  }
+  if (stopBtn) {
+    stopBtn.disabled = !state.timerRunning;
+  }
+  // Reset is always enabled — no change needed
+}
+
+/* ============================================================
+   SECTION 4b: TIMER SETTINGS PANEL
+   ============================================================ */
+
+function toggleSettingsPanel() {
+  const panel = document.getElementById('timer-settings-panel');
+  const btn   = document.getElementById('timer-settings-btn');
+  if (!panel) return;
+  const isHidden = panel.hidden;
+  panel.hidden = !isHidden;
+  if (btn) btn.setAttribute('aria-expanded', String(isHidden));
+}
+
+function highlightActivePreset(minutes) {
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.classList.toggle('active', Number(btn.dataset.minutes) === minutes);
+  });
+}
+
+function setTimerDuration(minutes) {
+  const m = Math.min(120, Math.max(1, Math.round(minutes)));
+  state.timerDuration = m;
+  saveTimerDuration(m);
+  highlightActivePreset(m);
+  if (!state.timerRunning) {
+    state.timerSeconds = m * 60;
+    renderTimer();
+    updateProgressRing();
+    updateTimerButtons();
+  }
+}
+
 function startTimer() {
   if (state.timerRunning || state.timerSeconds <= 0) return;
   state.timerRunning  = true;
   state.timerInterval = setInterval(tickTimer, 1000);
+  applyTimerState('running');
+  updateTimerButtons();
 }
 
 function stopTimer() {
   clearInterval(state.timerInterval);
   state.timerInterval = null;
   state.timerRunning  = false;
+  applyTimerState('paused');
+  updateTimerButtons();
 }
 
 function resetTimer() {
   stopTimer();
-  state.timerSeconds = 25 * 60;
+  state.timerSeconds = state.timerDuration * 60;
   renderTimer();
+  updateProgressRing();
+  applyTimerState('idle');
+  updateTimerButtons();
   const timesUp = document.getElementById('times-up');
   if (timesUp) timesUp.style.display = 'none';
 }
@@ -146,12 +244,16 @@ function tickTimer() {
   state.timerSeconds -= 1;
   if (state.timerSeconds <= 0) {
     state.timerSeconds = 0;
-    stopTimer();
+    stopTimer();           // sets paused state internally
     renderTimer();
+    updateProgressRing();
+    applyTimerState('finished');  // override to finished
+    updateTimerButtons();
     const timesUp = document.getElementById('times-up');
     if (timesUp) timesUp.style.display = 'block';
   } else {
     renderTimer();
+    updateProgressRing();
   }
 }
 
@@ -168,12 +270,46 @@ function escapeHtml(str) {
     .replace(/'/g,  '&#39;');
 }
 
+function getSortedTasks() {
+  const copy = [...state.tasks];
+  switch (state.sortOrder) {
+    case 'newest':    return copy.reverse();
+    case 'oldest':    return copy; // insertion order = oldest first
+    case 'completed': return copy.sort((a, b) => (b.done ? 1 : 0) - (a.done ? 1 : 0));
+    case 'incomplete':return copy.sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0));
+    case 'az':        return copy.sort((a, b) => a.text.localeCompare(b.text));
+    case 'za':        return copy.sort((a, b) => b.text.localeCompare(a.text));
+    default:          return copy; // 'default' = insertion order
+  }
+}
+
 function renderTasks() {
   const list = document.getElementById('task-list');
   if (!list) return;
   list.innerHTML = '';
 
-  state.tasks.forEach(task => {
+  // --- Progress summary ---
+  const total     = state.tasks.length;
+  const completed = state.tasks.filter(t => t.done).length;
+  const remaining = total - completed;
+  const pct       = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  const progressText = document.getElementById('task-progress-text');
+  const progressWrap = document.getElementById('progress-bar-wrap');
+  const progressFill = document.getElementById('progress-bar-fill');
+
+  if (progressText) {
+    progressText.textContent = total === 0
+      ? 'No tasks yet'
+      : `${total} task${total !== 1 ? 's' : ''} · ${completed} completed · ${remaining} remaining`;
+  }
+  if (progressWrap) progressWrap.style.display = total > 0 ? '' : 'none';
+  if (progressFill) progressFill.style.width   = pct + '%';
+
+  // --- Sorted display copy (do NOT mutate state.tasks) ---
+  const sorted = getSortedTasks();
+
+  sorted.forEach(task => {
     const item = document.createElement('div');
     item.className = 'task-item' + (task.done ? ' done' : '');
     item.dataset.id = task.id;
@@ -186,10 +322,20 @@ function renderTasks() {
     checkbox.setAttribute('aria-label', 'Mark task as done');
     checkbox.addEventListener('change', () => toggleTask(task.id));
 
-    // Task text span (view mode)
+    // Text+status wrapper
+    const textWrap = document.createElement('div');
+    textWrap.className = 'task-text-wrap';
+
     const textSpan = document.createElement('span');
     textSpan.className   = 'task-text';
     textSpan.textContent = task.text;
+
+    const statusSpan = document.createElement('span');
+    statusSpan.className   = 'task-status ' + (task.done ? 'completed' : 'pending');
+    statusSpan.textContent = task.done ? '✓ Completed' : '○ Pending';
+
+    textWrap.appendChild(textSpan);
+    textWrap.appendChild(statusSpan);
 
     // Edit input (edit mode, hidden by default)
     const editInput = document.createElement('input');
@@ -222,7 +368,7 @@ function renderTasks() {
         editTask(task.id, editInput.value);
       } else {
         // Enter edit mode
-        textSpan.style.display  = 'none';
+        textWrap.style.display  = 'none';
         editInput.style.display = '';
         editBtn.textContent     = '💾';
         editBtn.setAttribute('aria-label', 'Save task');
@@ -244,7 +390,7 @@ function renderTasks() {
     deleteBtn.addEventListener('click', () => deleteTask(task.id));
 
     item.appendChild(checkbox);
-    item.appendChild(textSpan);
+    item.appendChild(textWrap);
     item.appendChild(editInput);
     item.appendChild(editBtn);
     item.appendChild(deleteBtn);
@@ -540,6 +686,60 @@ function attachEventListeners() {
       }
     });
   }
+
+  // Settings toggle button
+  const settingsBtn = document.getElementById('timer-settings-btn');
+  if (settingsBtn) settingsBtn.addEventListener('click', toggleSettingsPanel);
+
+  // Preset duration buttons (event delegation on settings panel)
+  const settingsPanel = document.getElementById('timer-settings-panel');
+  if (settingsPanel) {
+    settingsPanel.addEventListener('click', (e) => {
+      const preset = e.target.closest('.preset-btn');
+      if (preset) {
+        const minutes = parseInt(preset.dataset.minutes, 10);
+        if (!isNaN(minutes)) setTimerDuration(minutes);
+      }
+    });
+  }
+
+  // Apply custom duration
+  const applyDurationBtn = document.getElementById('apply-duration-btn');
+  if (applyDurationBtn) {
+    applyDurationBtn.addEventListener('click', () => {
+      const input = document.getElementById('custom-duration-input');
+      if (!input) return;
+      const minutes = parseInt(input.value, 10);
+      if (!isNaN(minutes) && minutes >= 1 && minutes <= 120) {
+        setTimerDuration(minutes);
+        input.value = '';
+      }
+    });
+  }
+
+  // Custom duration — Enter key
+  const customDurationInput = document.getElementById('custom-duration-input');
+  if (customDurationInput) {
+    customDurationInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const minutes = parseInt(customDurationInput.value, 10);
+        if (!isNaN(minutes) && minutes >= 1 && minutes <= 120) {
+          setTimerDuration(minutes);
+          customDurationInput.value = '';
+        }
+      }
+    });
+  }
+
+  // Sort select change
+  const sortSelect = document.getElementById('sort-select');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', () => {
+      state.sortOrder = sortSelect.value;
+      saveSortOrder(state.sortOrder);
+      renderTasks();
+    });
+  }
 }
 
 /* ============================================================
@@ -565,6 +765,16 @@ document.addEventListener('DOMContentLoaded', () => {
   renderTimer();
   renderTasks();
   renderLinks();
+
+  // Apply saved sort preference to select element
+  const sortSelectEl = document.getElementById('sort-select');
+  if (sortSelectEl) sortSelectEl.value = state.sortOrder;
+
+  // Set initial timer state and button states
+  applyTimerState('idle');
+  updateTimerButtons();
+  updateProgressRing();
+  highlightActivePreset(state.timerDuration);
 
   // Attach all event listeners
   attachEventListeners();

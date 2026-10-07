@@ -19,7 +19,7 @@
 
   <!-- Header -->
   <header>
-    <h1 class="app-title">🗂️ Life Dashboard</h1>
+    <h1 class="app-title">🗂️ Dashboard To-Do List Life </h1>
     <button id="theme-toggle" aria-label="Toggle theme">🌙</button>
   </header>
 
@@ -38,9 +38,38 @@
 
       <!-- Focus Timer Card -->
       <section class="card" id="timer-card">
-        <h2>🎯 Focus Timer</h2>
-        <div id="timer-display">25:00</div>
+        <!-- Card header row: title + settings toggle -->
+        <div class="timer-card-header">
+          <h2>🎯 Focus Timer</h2>
+          <button class="btn btn-secondary timer-settings-btn" id="timer-settings-btn" aria-label="Timer settings" aria-expanded="false">⚙️ Settings</button>
+        </div>
+
+        <!-- Settings panel (hidden by default) -->
+        <div id="timer-settings-panel" class="timer-settings-panel" hidden>
+          <div class="preset-row">
+            <button class="btn preset-btn" data-minutes="15">15 min</button>
+            <button class="btn preset-btn" data-minutes="25">25 min</button>
+            <button class="btn preset-btn" data-minutes="45">45 min</button>
+            <button class="btn preset-btn" data-minutes="60">60 min</button>
+          </div>
+          <div class="custom-duration-row">
+            <label for="custom-duration-input" class="custom-duration-label">Custom (min):</label>
+            <input type="number" id="custom-duration-input" class="custom-duration-input" min="1" max="120" placeholder="1–120" aria-label="Custom duration in minutes" />
+            <button class="btn btn-primary" id="apply-duration-btn">Apply</button>
+          </div>
+        </div>
+
+        <!-- SVG progress ring + timer display -->
+        <div class="timer-ring-wrap">
+          <svg class="timer-ring" viewBox="0 0 120 120" aria-hidden="true">
+            <circle class="ring-track" cx="60" cy="60" r="54" />
+            <circle class="ring-progress" id="ring-progress" cx="60" cy="60" r="54" />
+          </svg>
+          <div id="timer-display">25:00</div>
+        </div>
+
         <p id="times-up" style="display:none;">Time's up! 🎉</p>
+
         <div class="timer-buttons">
           <button class="btn btn-primary" id="start-btn">▶ Start</button>
           <button class="btn btn-secondary" id="stop-btn">⏸ Stop</button>
@@ -61,6 +90,29 @@
           <button class="btn btn-primary" id="add-task-btn">Add</button>
         </div>
         <span class="error-msg" id="task-error" aria-live="polite"></span>
+
+        <!-- Task progress summary -->
+        <div id="task-progress" class="task-progress" aria-live="polite">
+          <span id="task-progress-text">No tasks yet</span>
+          <div class="progress-bar-wrap" id="progress-bar-wrap" style="display:none;">
+            <div class="progress-bar-fill" id="progress-bar-fill"></div>
+          </div>
+        </div>
+
+        <!-- Sort controls -->
+        <div id="sort-row" class="sort-row">
+          <label for="sort-select" class="sort-label">Sort:</label>
+          <select id="sort-select" class="sort-select" aria-label="Sort tasks">
+            <option value="default">Default</option>
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="completed">Completed First</option>
+            <option value="incomplete">Incomplete First</option>
+            <option value="az">A–Z</option>
+            <option value="za">Z–A</option>
+          </select>
+        </div>
+
         <div id="task-list"></div>
       </section>
 
