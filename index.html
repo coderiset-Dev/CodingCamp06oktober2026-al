@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Life Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- Modal Overlay: Custom Name -->
+  <div id="modal-overlay">
+    <div class="modal-box">
+      <h2>What's your name?</h2>
+      <input type="text" id="modal-name-input" placeholder="Enter your name" aria-label="Your name" maxlength="50" />
+      <button class="btn btn-primary" id="modal-save-btn">Save</button>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <h1 class="app-title">🗂️ Life Dashboard</h1>
+    <button id="theme-toggle" aria-label="Toggle theme">🌙</button>
+  </header>
+
+  <!-- Main Grid -->
+  <main class="grid">
+
+    <!-- Left Panel -->
+    <div class="left-panel">
+
+      <!-- Greeting Card -->
+      <section class="card" id="greeting-card">
+        <div id="clock">00:00:00</div>
+        <div id="date-display"></div>
+        <div id="greeting-text"></div>
+      </section>
+
+      <!-- Focus Timer Card -->
+      <section class="card" id="timer-card">
+        <h2>🎯 Focus Timer</h2>
+        <div id="timer-display">25:00</div>
+        <p id="times-up" style="display:none;">Time's up! 🎉</p>
+        <div class="timer-buttons">
+          <button class="btn btn-primary" id="start-btn">▶ Start</button>
+          <button class="btn btn-secondary" id="stop-btn">⏸ Stop</button>
+          <button class="btn btn-secondary" id="reset-btn">↺ Reset</button>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right-panel">
+
+      <!-- To-Do List Card -->
+      <section class="card" id="todo-card">
+        <h2>✅ To-Do List</h2>
+        <div class="todo-input-row">
+          <input type="text" id="task-input" placeholder="Add a new task…" aria-label="New task" maxlength="200" />
+          <button class="btn btn-primary" id="add-task-btn">Add</button>
+        </div>
+        <span class="error-msg" id="task-error" aria-live="polite"></span>
+        <div id="task-list"></div>
+      </section>
+
+      <!-- Quick Links Card -->
+      <section class="card" id="links-card">
+        <h2>🔗 Quick Links</h2>
+        <div class="link-list" id="links-list"></div>
+        <span class="error-msg" id="link-error" aria-live="polite"></span>
+        <div class="add-link-form">
+          <input type="text" id="link-name-input" placeholder="Link name" aria-label="Link name" maxlength="100" />
+          <input type="text" id="link-url-input" placeholder="https://example.com" aria-label="Link URL" maxlength="500" />
+          <button class="btn btn-primary" id="add-link-btn">Add Link</button>
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <script src="js/script.js" defer></script>
+</body>
+</html>
