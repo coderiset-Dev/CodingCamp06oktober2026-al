@@ -205,12 +205,26 @@ function setTimerDuration(minutes) {
   state.timerDuration = m;
   saveTimerDuration(m);
   highlightActivePreset(m);
-  if (!state.timerRunning) {
-    state.timerSeconds = m * 60;
-    renderTimer();
-    updateProgressRing();
-    updateTimerButtons();
+  
+  // Stop any running timer and clear interval
+  if (state.timerRunning) {
+    clearInterval(state.timerInterval);
+    state.timerInterval = null;
+    state.timerRunning = false;
   }
+  
+  // Reset timer to new duration
+  state.timerSeconds = m * 60;
+  renderTimer();
+  updateProgressRing();
+  
+  // Set timer state to idle
+  applyTimerState('idle');
+  updateTimerButtons();
+  
+  // Hide "Time's up" message if visible
+  const timesUp = document.getElementById('times-up');
+  if (timesUp) timesUp.style.display = 'none';
 }
 
 function startTimer() {
